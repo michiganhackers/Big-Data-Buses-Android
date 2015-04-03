@@ -3,5 +3,6 @@
 
     <string name="app_name">BigDataAndroid</string>
     <string name="title_activity_maps">Map</string>
-
+    <string name="drawer_open">IsOpen</string>
+    <string name="drawer_close">IsClosed</string>
 </resources>
