@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -24,6 +25,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONException;
 
 public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback {
 
@@ -99,13 +104,21 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map){
 //        addingBuses();
+        Routes bBaits = new Routes();
+        Polyline line = map.addPolyline(new PolylineOptions()
+                .addAll(bBaits.b_Baits)
+                .width(5)
+                .color(Color.GREEN));
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
-        Marker marker = map.addMarker(new MarkerOptions().position(ANN_ARBOR)
+        Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
                 .title("Swishigan")
                 .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
-        animateMarker(marker, FINAL_POS, new LatLngInterpolator.Linear());
-        Log.d("test", "yee");
+//        for(int i = 0; i < bBaits.b_Baits.size()-1; i++){
+//            marker.setPosition(bBaits.b_Baits.get(i));
+//            animateMarker(marker, bBaits.b_Baits.get(i+1), new LatLngInterpolator.Linear());
+//        }
+
     }
 
 
