@@ -58,7 +58,9 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
     private String[] mPlanetTitles;
+    private boolean[] selected;
     private Toolbar mToolbar;
+    private Polyline line;
 
 //    private LatLng someLat = new LatLng(42.2818294, -83.7317954);
     @Override
@@ -68,20 +70,23 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         setContentView(R.layout.main_activity);
         setUpMapIfNeeded();
         mTitle = mDrawerTitle = getTitle();
-        mPlanetTitles = new String[] {"earth","mars","pluto","jupiter"};
+        mPlanetTitles = new String[] {"Bursley Baits","Northwood","Commuter South","Commuter North"};
+        selected = new boolean[mPlanetTitles.length];
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        mDrawerList.setSelector(R.drawable.list_selector);
+        //mDrawerList.setItemsCanFocus(false);
         SupportMapFragment mapFragment = ((SupportMapFragment)getSupportFragmentManager().
                 findFragmentById(R.id.map));
 //        assert(mapFragment!=null);
         mapFragment.getMapAsync(this);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mToolbar.setTitle("Magic Bus");
+        mToolbar.setTitleTextColor(Color.WHITE);
         if (mToolbar != null) {
             setSupportActionBar(mToolbar);
         }
-
-        mToolbar.setTitle("Magic Bus");
 
         //Lets get a shadow object later
         //mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -89,6 +94,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
                 R.layout.draw_item, mPlanetTitles));
 
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
 
 
         mDrawerToggle = new ActionBarDrawerToggle(
@@ -115,7 +121,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         if (savedInstanceState == null) {
-            selectItem(0);
+            //selectItem(0);
         }
 
     }
@@ -123,7 +129,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     @Override
     public void onResume() {
         super.onResume();
-        
+
         setUpMapIfNeeded();
     }
 
@@ -175,10 +181,11 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap map){
 //        addingBuses();
         Routes bBaits = new Routes();
-        Polyline line = map.addPolyline(new PolylineOptions()
+        line = map.addPolyline(new PolylineOptions()
                 .addAll(bBaits.b_Baits)
                 .width(5)
                 .color(Color.GREEN));
+        line.setVisible(false);
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
         Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
@@ -252,8 +259,20 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     private void selectItem(int position) {
         // update the main content by replacing fragments
         // update selected item and title, then close the drawer
-        mDrawerList.setItemChecked(position, true);
-        mDrawerLayout.closeDrawer(mDrawerList);
+        //mDrawerList.setItemChecked(position, true);
+        selected[position] ^= true;
+        if (selected[0]){
+            if (line != null){
+                line.setVisible(true);
+            }
+        }
+        else{
+            if (line != null){
+                line.setVisible(false);
+            }
+        }
+        mDrawerList.setItemChecked(position, selected[position]);
+        //mDrawerLayout.closeDrawer(mDrawerList);
     }
 
 
