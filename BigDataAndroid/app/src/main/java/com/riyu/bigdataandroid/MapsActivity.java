@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
@@ -42,6 +43,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 public class MapsActivity extends ActionBarActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -57,10 +61,11 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 
     private CharSequence mDrawerTitle;
     private CharSequence mTitle;
-    private String[] mPlanetTitles;
+    private String[] mRoutes;
     private boolean[] selected;
     private Toolbar mToolbar;
     private Polyline line;
+    private SyncDouble SD;
 
 //    private LatLng someLat = new LatLng(42.2818294, -83.7317954);
     @Override
@@ -69,13 +74,12 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 
         setContentView(R.layout.main_activity);
         setUpMapIfNeeded();
-        mTitle = mDrawerTitle = getTitle();
-        mPlanetTitles = new String[] {"Bursley Baits","Northwood","Commuter South","Commuter North"};
-        selected = new boolean[mPlanetTitles.length];
+
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setSelector(R.drawable.list_selector);
         //mDrawerList.setItemsCanFocus(false);
+
         SupportMapFragment mapFragment = ((SupportMapFragment)getSupportFragmentManager().
                 findFragmentById(R.id.map));
 //        assert(mapFragment!=null);
@@ -88,10 +92,32 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
             setSupportActionBar(mToolbar);
         }
 
+
+        mTitle = mDrawerTitle = getTitle();
+       /* while(SD == null){
+
+        }
+        while(SD.getStatus() != AsyncTask.Status.FINISHED){
+
+        }*/
+
+        SD = new SyncDouble(mMap);
+        SD.execute();
+        try{
+            SD.get(20000,TimeUnit.MILLISECONDS);
+        }
+        catch(Exception e){
+            Log.i("Error", e.getMessage());
+        }
+
+        mRoutes = new String[SD.getRoutes().size()];
+        mRoutes = SD.getRoutes().toArray(mRoutes);
+        //mRoutes = new String[]{"1", "2", "3"};
+        selected = new boolean[mRoutes.length];
         //Lets get a shadow object later
         //mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-                R.layout.draw_item, mPlanetTitles));
+                R.layout.draw_item, mRoutes));
 
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
@@ -180,17 +206,17 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map){
 //        addingBuses();
-        Routes bBaits = new Routes();
-        line = map.addPolyline(new PolylineOptions()
-                .addAll(bBaits.b_Baits)
-                .width(5)
-                .color(Color.GREEN));
-        line.setVisible(false);
+
+
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
-        Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
+       /* Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
                 .title("Swishigan")
-                .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
+                .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));*/
+        //stops = SD.getStop s();
+
+
+
 //        for(int i = 0; i < bBaits.b_Baits.size()-1; i++){
 //            marker.setPosition(bBaits.b_Baits.get(i));
 //            animateMarker(marker, bBaits.b_Baits.get(i+1), new LatLngInterpolator.Linear());
@@ -261,16 +287,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         // update selected item and title, then close the drawer
         //mDrawerList.setItemChecked(position, true);
         selected[position] ^= true;
-        if (selected[0]){
-            if (line != null){
-                line.setVisible(true);
-            }
-        }
-        else{
-            if (line != null){
-                line.setVisible(false);
-            }
-        }
+        SD.showRoute(position, selected[position]);
         mDrawerList.setItemChecked(position, selected[position]);
         //mDrawerLayout.closeDrawer(mDrawerList);
     }
