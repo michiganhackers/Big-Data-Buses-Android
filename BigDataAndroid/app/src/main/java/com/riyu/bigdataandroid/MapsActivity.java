@@ -1,5 +1,6 @@
 package com.riyu.bigdataandroid;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.content.res.Configuration;
@@ -180,23 +181,37 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map){
 //        addingBuses();
-        Routes bBaits = new Routes();
+        Routes bBaits = new Routes(b_BaitsString);
         line = map.addPolyline(new PolylineOptions()
-                .addAll(bBaits.b_Baits)
+                .addAll(bBaits.getCoordinates())
                 .width(5)
                 .color(Color.GREEN));
         line.setVisible(false);
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
-        Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
+        Marker marker = map.addMarker(new MarkerOptions().position(bBaits.getCoordinates().get(0))
                 .title("Swishigan")
                 .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
-//        for(int i = 0; i < bBaits.b_Baits.size()-1; i++){
-//            marker.setPosition(bBaits.b_Baits.get(i));
-//            animateMarker(marker, bBaits.b_Baits.get(i+1), new LatLngInterpolator.Linear());
+        int count = 0;
+        long currentTime = System.currentTimeMillis();
+        animateMarker(marker, bBaits.getCoordinates().get(0), new LatLngInterpolator.Linear());
+//        while(count < bBaits.getCoordinates().size()-1){
+//            if (System.currentTimeMillis() - currentTime > 3000){
+//                animateMarker(marker, bBaits.getCoordinates().get(count+1), new LatLngInterpolator.Linear());
+//                count++;
+//                currentTime = System.currentTimeMillis();
+//            }
 //        }
+        for(int i = 0; i < bBaits.getCoordinates().size()-1; i++){
+//            marker.setPosition(bBaits.getCoordinates().get(i));
+//            Marker marker = map.addMarker(new MarkerOptions().position(bBaits.getCoordinates().get(i))
+//                    .title("Swishigan")
+//                    .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
+            animateMarker(marker, bBaits.getCoordinates().get(i+1), new LatLngInterpolator.Linear());
+        }
 
     }
+
 
 
     static void animateMarker(Marker marker, LatLng finalPos, final LatLngInterpolator latLngInterpolator){
@@ -208,8 +223,29 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         };
         Property<Marker, LatLng> property = Property.of(Marker.class, LatLng.class, "position");
         ObjectAnimator animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPos);
-        animator.setDuration(30000);
+        animator.setDuration(15000);
         animator.start();
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        marker.setPosition(finalPos);
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            Log.d("Thread", e.getMessage());
+//        }
     }
 
    /* private void addingBuses(){
@@ -289,5 +325,15 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
+
+    String b_BaitsString = "{\"id\":311," +
+            "\"name\":\"Bursley-Baits\"," +
+            "\"short_name\":\"BB\"," +
+            "\"description\":\"Bursley-Baits provides service between the Central Campus Transit Center, Bursley Hall and Vera Baits Houses on North Campus. Bursley-Baits operates seven days per week during Fall and Winter terms only. The evening and weekend Bursley-Baits route also provides outbound service to Stockwell Hall and the Cardiovascular Center along Observatory.\"," +
+            "\"color\":\"007F00\"," +
+            "\"path\":[42.277904,-83.735084,42.277913,-83.735069,42.277495,-83.734548,42.277392,-83.73428,42.277454,-83.732487,42.277454,-83.732487,42.27748,-83.731675,42.277254,-83.730915,42.277254,-83.730915,42.277271,-83.730974,42.278672,-83.731027,42.278672,-83.731027,42.281721,-83.731096,42.28227,-83.73102,42.282451,-83.730987,42.282426,-83.731249,42.282361,-83.732026,42.282361,-83.732026,42.282296,-83.733537,42.283135,-83.73366,42.283204,-83.733832,42.28317,-83.734987,42.28317,-83.734987,42.283152,-83.735664,42.283998,-83.735741,42.283998,-83.735741,42.284729,-83.7356,42.285401,-83.735006,42.286045,-83.733643,42.286045,-83.733643,42.286457,-83.732463,42.286544,-83.731286,42.286817,-83.729564,42.286927,-83.727389,42.286927,-83.727389,42.287085,-83.726011,42.287206,-83.721468,42.287367,-83.718972,42.288179,-83.719035,42.288179,-83.719035,42.28939,-83.71933,42.289915,-83.719017,42.290205,-83.718422,42.29267,-83.718738,42.29267,-83.718738,42.29486,-83.719218,42.294642,-83.720761,42.294642,-83.720761,42.294535,-83.723221,42.294344,-83.723915,42.294104,-83.724256,42.293776,-83.724495,42.292745,-83.724487,42.29239,-83.724489,42.291628,-83.723781,42.291548,-83.723395,42.291906,-83.723406,42.292532,-83.723953,42.292659,-83.724382,42.292727,-83.724484,42.293596,-83.724547,42.294104,-83.724256,42.294464,-83.723608,42.294561,-83.722663,42.294561,-83.722663,42.294645,-83.720713,42.294839,-83.719747,42.29486,-83.719218,42.29227,-83.718672,42.29227,-83.718672,42.290385,-83.718475,42.290265,-83.719206,42.28983,-83.71975,42.28983,-83.71975,42.289336,-83.719814,42.288301,-83.719363,42.287568,-83.719225,42.287568,-83.719225,42.287347,-83.719187,42.287206,-83.721468,42.287075,-83.728139,42.287075,-83.728139,42.287033,-83.729528,42.286633,-83.732031,42.286457,-83.732463,42.286141,-83.733416,42.286141,-83.733416,42.285401,-83.735006,42.284937,-83.735464,42.284353,-83.735739,42.281335,-83.735556,42.281334,-83.735567,42.281334,-83.735567,42.281286,-83.737225,42.280812,-83.737192,42.280812,-83.737192,42.278568,-83.73707,42.278568,-83.736355,42.278568,-83.736355,42.278474,-83.73585,42.27796,-83.735127]," +
+            "\"schedule_url\":\"http://www.pts.umich.edu/maps/bursley_baits.pdf\"," +
+            "\"active\":true," +
+            "\"stops\":[137,3,5,8,10,128,100,92,134,133,84,83,101,48,32,44]}";
 
 }

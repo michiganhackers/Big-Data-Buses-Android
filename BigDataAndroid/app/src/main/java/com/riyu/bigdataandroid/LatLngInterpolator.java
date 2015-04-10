@@ -3,7 +3,7 @@ package com.riyu.bigdataandroid;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
- * Created by ankit on 4/2/15.
+ * Created by Ankit on 4/2/15.
  */
 public interface LatLngInterpolator {
     public LatLng interpolate (float fraction, LatLng a, LatLng b);
