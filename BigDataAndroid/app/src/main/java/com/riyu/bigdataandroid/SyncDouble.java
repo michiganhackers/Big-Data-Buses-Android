@@ -1,8 +1,12 @@
 package com.riyu.bigdataandroid;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.TypeEvaluator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -12,6 +16,7 @@ import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.util.JsonReader;
 import android.util.Log;
+import android.util.Property;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -43,27 +48,31 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 
     private ArrayList<Stops> stops = new ArrayList<Stops>();
     private ArrayList<Routes> routes = new ArrayList<Routes>();
+    private HashMap<Integer, Integer> routesID = new HashMap<>();
     private HashMap<Integer, Marker> bus_stops  = new HashMap<Integer, Marker>();
-    private HashMap<Integer, Marker> active_buses = new HashMap<>();
+    private HashMap<Integer, Marker> bus_map = new HashMap<>();
+    private HashMap<Integer, ArrayList<Marker> > route_pointer = new HashMap<>();
     private ArrayList<Polyline> route_paths  = new ArrayList<Polyline>();
     private ArrayList<String> routeNames = new ArrayList<String>();
     private int[] shown;
     private GoogleMap map;
     private ProgressDialog dialog;
     private ActionBarActivity activity;
+    private Bitmap scaledBus;
     private SyncBuses SB = new SyncBuses();
 
 
     // set your json string url here
     String StopsUrl = "http://mbus.doublemap.com/map/v2/stops";
-    String RoutesUrl ="http://mbus.doublemap.com/map/v2/routes?inactive=true";
+    String RoutesUrl ="http://mbus.doublemap.com/map/v2/routes";
 
 
     @Override
     protected void onPreExecute() {}
 
-    SyncDouble(GoogleMap map_in){
+    SyncDouble(GoogleMap map_in, Bitmap scaledBusIn){
         map = map_in;
+        scaledBus = scaledBusIn;
     }
 
     @Override
@@ -115,6 +124,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
                 routeNames.add(Name);
 
                 routes.add(new Routes(id,Name,ShortName, Description, color, r.getJSONArray("path"), active, r.getJSONArray("stops") ));
+                routesID.put(i,  id);
 
             }
 
@@ -129,12 +139,13 @@ public class SyncDouble extends AsyncTask<String, String, String> {
     protected void onPostExecute(String strFromDoInBg) {
         updateBuses();
 //        Log.e("Sync Double", "What about this one? postex");
+
         for (int i = 0; i < stops.size(); i++){
             int identification = stops.get(i).getId();
             bus_stops.put( identification ,
                     (map.addMarker(new MarkerOptions().position(stops.get(i).getCoordinates())
-                    .title(stops.get(i).getName()) ) )
-            );
+                                    .title(stops.get(i).getName())
+                    ) ) );
 
             bus_stops.get(identification).setVisible(false);
         }
@@ -179,14 +190,50 @@ public class SyncDouble extends AsyncTask<String, String, String> {
         new CountDownTimer(3000, 1000){
             public void onTick(long millisUntilFinished){}
             public void onFinish(){
+                ArrayList<Buses> BusList = SB.getActive_buses();
                 SB = new SyncBuses();
                 SB.execute();
+                Boolean empty = bus_map.isEmpty();
+                for(int i = 0; i < BusList.size(); i++){
+                    if (empty){
+
+                        bus_map.put(BusList.get(i).getId(), map.addMarker(new MarkerOptions().position(BusList.get(i).getLoc() ).icon(BitmapDescriptorFactory.fromBitmap(scaledBus) )
+                        ));
+
+                        bus_map.get(BusList.get(i).getId()).setVisible(false);
+
+                        if (route_pointer.containsKey(BusList.get(i).getRoute() ) ){
+                           route_pointer.get(BusList.get(i).getRoute()).add(bus_map.get(BusList.get(i).getId()));
+                        }
+                        else{
+                            route_pointer.put(BusList.get(i).getRoute(), new ArrayList<Marker>());
+                            route_pointer.get(BusList.get(i).getRoute()).add(bus_map.get(BusList.get(i).getId()));
+                        }
+                    }
+                    else{
+                        if (bus_map.containsKey(BusList.get(i).getId())) {
+                            if (bus_map.get(BusList.get(i).getId()).isVisible()) {
+                                animateMarker(bus_map.get(BusList.get(i).getId()), BusList.get(i).getLoc(), new LatLngInterpolator.Linear());
+
+                            } else {
+                                bus_map.get(BusList.get(i).getId()).setPosition(BusList.get(i).getLoc());
+                            }
+                        }
+                    }
+                }
                 updateBuses();
             }
         }.start();
     }
     public void showRoute(int identification, Boolean show){
         route_paths.get(identification).setVisible(show);
+        if (route_pointer.containsKey(routes.get(identification).getId())) {
+            for (int i = 0; i < route_pointer.get(routes.get(identification).getId()).size(); i++) {
+
+                route_pointer.get(routes.get(identification).getId()).get(i).setVisible(show);
+
+            }
+        }
         ArrayList<Integer> stopIds = routes.get(identification).getStops();
 //        getBuses(routes.get(identification));
         for(int i = 0; i <  stopIds.size(); i++ ){
@@ -217,5 +264,39 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 
         return routeNames;
 
+    }
+
+    static void animateMarker(Marker marker, LatLng finalPos, final LatLngInterpolator latLngInterpolator){
+        TypeEvaluator<LatLng> typeEvaluator = new TypeEvaluator<LatLng>() {
+            @Override
+            public LatLng evaluate(float fraction, LatLng startValue, LatLng endValue) {
+                return latLngInterpolator.interpolate(fraction, startValue, endValue);
+            }
+        };
+        Property<Marker, LatLng> property = Property.of(Marker.class, LatLng.class, "position");
+        ObjectAnimator animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPos);
+        animator.setDuration(3000);
+        animator.start();
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                Log.d("MapsActivity", "Animation Ended");
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        marker.setPosition(finalPos);
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            Log.d("Thread", e.getMessage());
+//        }
     }
 }

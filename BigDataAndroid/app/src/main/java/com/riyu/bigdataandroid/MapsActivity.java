@@ -101,8 +101,10 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         while(SD.getStatus() != AsyncTask.Status.FINISHED){
 
         }*/
+        Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
+        Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
 
-        SD = new SyncDouble(mMap);
+        SD = new SyncDouble(mMap, scaledBus);
         SD.execute();
         try{
             SD.get(20000,TimeUnit.MILLISECONDS);
@@ -230,11 +232,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 //                currentTime = System.currentTimeMillis();
 //            }*/
 // =======
-
-
-        Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
-        Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
-        Marker marker = map.addMarker(new MarkerOptions().position(ANN_ARBOR)
+       /* Marker marker = map.addMarker(new MarkerOptions().position(ANN_ARBOR)
                 .title("Swishigan")
                 .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
         //stops = SD.getStop s();

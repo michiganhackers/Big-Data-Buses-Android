@@ -23,12 +23,15 @@ import java.util.HashMap;
 public class SyncBuses extends AsyncTask<String, String, String> {
     String BusesUrl = "http://mbus.doublemap.com/map/v2/buses";
 //    private GoogleMap map;
-    private HashMap<Integer, ArrayList<Buses>> active_buses = new HashMap<>();
+    private ArrayList<Buses> active_buses = new ArrayList<>();
+
     private final String TAG = "SyncBuses";
     @Override
     protected void onPreExecute(){}
 
-    public SyncBuses(){}
+    public SyncBuses(){
+
+    }
 
 
     @Override
@@ -60,17 +63,18 @@ public class SyncBuses extends AsyncTask<String, String, String> {
                 int route = obj.getInt("route");
                 int id = obj.getInt("id");
                 LatLng pos = new LatLng(obj.getDouble("lat"),obj.getDouble("lon"));
-                if (active_buses.containsKey(route)){
-                    active_buses.get(route).add(new Buses(id, route, pos));
-                }
-                else {
-                    active_buses.put( route, new ArrayList<Buses>() );
-                    active_buses.get(route).add(new Buses(id, route, pos));
-                }
+                active_buses.add(new Buses(id, route, pos));
+
             }
+
+
         }catch(JSONException e){
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<Buses> getActive_buses(){
+        return active_buses;
     }
 
     public void printStuff(){ Log.d(TAG, "stuff");}
