@@ -40,6 +40,7 @@ public class Routes {
     private ArrayList<LatLng> path = new ArrayList<LatLng>();
     private Boolean active;
     private ArrayList<Integer> stops = new ArrayList<Integer>();
+//    private ArrayList<Integer> buses = new ArrayList<>();
 
     public Routes(int initId, String initName, String initShortName, String initDescription, int initColor, JSONArray initPath, Boolean initActive,JSONArray initStops) {
         id = initId;
@@ -52,12 +53,12 @@ public class Routes {
         setUpStops(initStops);
 // >>>>>>> b0a65cc750ecbd6b74f8387d461fadb03a82fba7
     }
-    public ArrayList<LatLng> getCoordinates(){ return coordinates; }
+    /*public ArrayList<LatLng> getCoordinates(){ return coordinates; }
     public String getName(){ return name; }
     public String getColor(){return color; }
     public String getDescription(){ return description; }
-    public boolean getActive(){ return active; }
-    public JSONArray getStops(){ return stops; }
+//    public boolean getActive(){ return active; }
+    public JSONArray getStops(){ return stops; }*/
 
 
 
@@ -102,6 +103,10 @@ public class Routes {
         }
     }
 
+//    public void addBusId(int busId){ buses.add(busId);}
+
+//    public ArrayList<Integer> getBuses() { return buses; }
+
     public int getId(){
         return id;
     }
@@ -126,9 +131,7 @@ public class Routes {
         return path;
     }
 
-    public Boolean getActive(){
-        return active;
-    }
+    public Boolean getActive(){ return active; }
     public ArrayList<Integer> getStops(){
         return stops;
     }

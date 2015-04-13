@@ -108,7 +108,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
             SD.get(20000,TimeUnit.MILLISECONDS);
         }
         catch(Exception e){
-            Log.i("Error", e.getMessage());
+            Log.e("Error", "Something broke");
         }
 
         mRoutes = new String[SD.getRoutes().size()];
@@ -156,8 +156,9 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
     @Override
     public void onResume() {
         super.onResume();
-
+        Log.d("MapsActivity", "Here1");
         setUpMapIfNeeded();
+        Log.d("MapsActivity", "Here");
     }
 
     /**
@@ -233,16 +234,16 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
-       /* Marker marker = map.addMarker(new MarkerOptions().position(bBaits.b_Baits.get(0))
+        Marker marker = map.addMarker(new MarkerOptions().position(ANN_ARBOR)
                 .title("Swishigan")
-                .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));*/
+                .icon(BitmapDescriptorFactory.fromBitmap(scaledBus)));
         //stops = SD.getStop s();
 
 
 
 //        for(int i = 0; i < bBaits.b_Baits.size()-1; i++){
 //            marker.setPosition(bBaits.b_Baits.get(i));
-//            animateMarker(marker, bBaits.b_Baits.get(i+1), new LatLngInterpolator.Linear());
+            animateMarker(marker, FINAL_POS, new LatLngInterpolator.Linear());
 // >>>>>>> b0a65cc750ecbd6b74f8387d461fadb03a82fba7
 //        }
        /* for(int i = 0; i < bBaits.getCoordinates().size()-1; i++){
@@ -274,7 +275,7 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
 
             @Override
             public void onAnimationEnd(Animator animation) {
-
+                Log.d("MapsActivity", "Animation Ended");
             }
 
             @Override

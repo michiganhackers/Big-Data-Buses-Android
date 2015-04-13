@@ -3,13 +3,18 @@ package com.riyu.bigdataandroid;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.CountDownTimer;
+import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.util.JsonReader;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -39,12 +44,15 @@ public class SyncDouble extends AsyncTask<String, String, String> {
     private ArrayList<Stops> stops = new ArrayList<Stops>();
     private ArrayList<Routes> routes = new ArrayList<Routes>();
     private HashMap<Integer, Marker> bus_stops  = new HashMap<Integer, Marker>();
+    private HashMap<Integer, Marker> active_buses = new HashMap<>();
     private ArrayList<Polyline> route_paths  = new ArrayList<Polyline>();
     private ArrayList<String> routeNames = new ArrayList<String>();
     private int[] shown;
     private GoogleMap map;
     private ProgressDialog dialog;
     private ActionBarActivity activity;
+    private SyncBuses SB = new SyncBuses();
+
 
     // set your json string url here
     String StopsUrl = "http://mbus.doublemap.com/map/v2/stops";
@@ -60,7 +68,8 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 
     @Override
     protected String doInBackground(String... arg0) {
-
+//        SB.execute();
+        Log.e("Sync Double", "How many times does this run? bkg");
         try {
 
             // instantiate our json parser
@@ -118,7 +127,8 @@ public class SyncDouble extends AsyncTask<String, String, String> {
     }
     @Override
     protected void onPostExecute(String strFromDoInBg) {
-
+        updateBuses();
+//        Log.e("Sync Double", "What about this one? postex");
         for (int i = 0; i < stops.size(); i++){
             int identification = stops.get(i).getId();
             bus_stops.put( identification ,
@@ -140,16 +150,55 @@ public class SyncDouble extends AsyncTask<String, String, String> {
         }
 
     }
+   /* public void getBuses(Routes routeObj){
+        int routeID = routeObj.getId();
+        try {
+            JsonParser jParser = new JsonParser();
+            JSONArray json_buses = jParser.getJSONFromUrl(StopsUrl);
+            for (int i = 0; i < json_buses.length(); i++) {
+                JSONObject obj = json_buses.getJSONObject(i);
+                int route = obj.getInt("route");
+                if (routeID!=route){
+                    continue;
+                }
+                int id = obj.getInt("id");
+                LatLng pos = new LatLng(obj.getDouble("lat"),obj.getDouble("lon"));
+                active_buses.put(  id, map.addMarker( new MarkerOptions().position(pos)
+                        .title(obj.getString("name"))
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)) )  );
 
+                routeObj.addBusId(id);
+
+            }
+        }catch(JSONException e){
+            e.printStackTrace();
+        }
+    }*/
+    public void updateBuses(){
+//        Looper.prepare();
+        new CountDownTimer(3000, 1000){
+            public void onTick(long millisUntilFinished){}
+            public void onFinish(){
+                SB = new SyncBuses();
+                SB.execute();
+                updateBuses();
+            }
+        }.start();
+    }
     public void showRoute(int identification, Boolean show){
         route_paths.get(identification).setVisible(show);
         ArrayList<Integer> stopIds = routes.get(identification).getStops();
+//        getBuses(routes.get(identification));
         for(int i = 0; i <  stopIds.size(); i++ ){
 
             if (show){
                 shown[stopIds.get(i)] += 1;
-
-                bus_stops.get(stopIds.get(i) ).setVisible(true);
+                if (bus_stops.get(stopIds.get(i)) == null){
+//                    Log.d("SyncDouble", " "+ (stopIds.get(i)-1) );
+//                    continue;
+                    throw new NullPointerException("" + (stopIds.get(i)));
+                }
+                bus_stops.get(stopIds.get(i)).setVisible(true);
             }
             else{
                 shown[stopIds.get(i)] -= 1;
@@ -158,7 +207,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
                 }
                 else{
 
-                    bus_stops.get(stopIds.get(i) ).setVisible(show);
+                    bus_stops.get(stopIds.get(i)).setVisible(show);
                 }
             }
         }
