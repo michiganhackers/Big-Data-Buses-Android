@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * Created by Riyu on 4/6/15.
@@ -141,6 +142,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 //        Log.e("Sync Double", "What about this one? postex");
 
         for (int i = 0; i < stops.size(); i++){
+
             int identification = stops.get(i).getId();
             bus_stops.put( identification ,
                     (map.addMarker(new MarkerOptions().position(stops.get(i).getCoordinates())
@@ -149,13 +151,16 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 
             bus_stops.get(identification).setVisible(false);
         }
-        shown = new int[bus_stops.size()];
+        shown = new int[bus_stops.size() + 1];
 
         Log.e("Size of routes", "size " + routes.size() );
         for (int i = 0; i < routes.size(); i++){
+            Random rnd = new Random();
+            int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+
             route_paths.add(map.addPolyline(new PolylineOptions().addAll(routes.get(i).getPath())
-                                    .width(5)
-                            /* Right Now the Colors are transparent for some reason .color(routes.get(i).getColor() )*/)
+                                    .width(10).color(color) )
+
             );
             route_paths.get(i).setVisible(false);
         }
@@ -213,6 +218,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
                     else{
                         if (bus_map.containsKey(BusList.get(i).getId())) {
                             if (bus_map.get(BusList.get(i).getId()).isVisible()) {
+
                                 animateMarker(bus_map.get(BusList.get(i).getId()), BusList.get(i).getLoc(), new LatLngInterpolator.Linear());
 
                             } else {
@@ -277,6 +283,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
         ObjectAnimator animator = ObjectAnimator.ofObject(marker, property, typeEvaluator, finalPos);
         animator.setDuration(3000);
         animator.start();
+
         animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {}
