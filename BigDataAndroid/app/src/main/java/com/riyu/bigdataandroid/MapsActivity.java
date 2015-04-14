@@ -104,7 +104,10 @@ public class MapsActivity extends ActionBarActivity implements OnMapReadyCallbac
         Bitmap origBus = BitmapFactory.decodeResource(getResources(), R.drawable.temp_bus);
         Bitmap scaledBus = Bitmap.createScaledBitmap(origBus, origBus.getWidth()/10, origBus.getHeight()/10, false);
 
-        SD = new SyncDouble(mMap, scaledBus);
+        Bitmap origStop = BitmapFactory.decodeResource(getResources(), R.drawable.stop_icon);
+        Bitmap scaledStop = Bitmap.createScaledBitmap(origStop, origStop.getWidth()/2, origStop.getHeight()/2, false);
+
+        SD = new SyncDouble(mMap, scaledBus, scaledStop);
         SD.execute();
         try{
             SD.get(20000,TimeUnit.MILLISECONDS);

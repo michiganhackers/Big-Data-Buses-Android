@@ -60,6 +60,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
     private ProgressDialog dialog;
     private ActionBarActivity activity;
     private Bitmap scaledBus;
+    private Bitmap scaledStop;
     private SyncBuses SB = new SyncBuses();
 
 
@@ -71,9 +72,10 @@ public class SyncDouble extends AsyncTask<String, String, String> {
     @Override
     protected void onPreExecute() {}
 
-    SyncDouble(GoogleMap map_in, Bitmap scaledBusIn){
+    SyncDouble(GoogleMap map_in, Bitmap scaledBusIn, Bitmap scaledStopIn){
         map = map_in;
         scaledBus = scaledBusIn;
+        scaledStop = scaledStopIn;
     }
 
     @Override
@@ -145,7 +147,7 @@ public class SyncDouble extends AsyncTask<String, String, String> {
 
             int identification = stops.get(i).getId();
             bus_stops.put( identification ,
-                    (map.addMarker(new MarkerOptions().position(stops.get(i).getCoordinates())
+                    (map.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(scaledStop)).flat(true).position(stops.get(i).getCoordinates())
                                     .title(stops.get(i).getName())
                     ) ) );
 
